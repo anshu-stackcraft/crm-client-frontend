@@ -1,7 +1,39 @@
+import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 
+const API_URL = "http://127.0.0.1:8000/api/clients/analytics/";
+
 export default function BarChartOne() {
+  const [series, setSeries] = useState([
+    {
+      name: "Projects",
+      data: [],
+    },
+  ]);
+
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => {
+        const statusData = data.status_distribution || {};
+
+        setCategories(Object.keys(statusData));
+
+        setSeries([
+          {
+            name: "Projects",
+            data: Object.values(statusData),
+          },
+        ]);
+      })
+      .catch((err) => {
+        console.error("Analytics API Error:", err);
+      });
+  }, []);
+
   const options: ApexOptions = {
     colors: ["#465fff"],
     chart: {
@@ -29,20 +61,7 @@ export default function BarChartOne() {
       colors: ["transparent"],
     },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
+      categories,
       axisBorder: {
         show: false,
       },
@@ -58,7 +77,7 @@ export default function BarChartOne() {
     },
     yaxis: {
       title: {
-        text: undefined,
+        text: "Clients",
       },
     },
     grid: {
@@ -71,26 +90,25 @@ export default function BarChartOne() {
     fill: {
       opacity: 1,
     },
-
     tooltip: {
       x: {
-        show: false,
+        show: true,
       },
       y: {
-        formatter: (val: number) => `${val}`,
+        formatter: (val: number) => `${val} Projects`,
       },
     },
   };
-  const series = [
-    {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
-    },
-  ];
+
   return (
     <div className="max-w-full overflow-x-auto custom-scrollbar">
       <div id="chartOne" className="min-w-[1000px]">
-        <Chart options={options} series={series} type="bar" height={180} />
+        <Chart
+          options={options}
+          series={series}
+          type="bar"
+          height={180}
+        />
       </div>
     </div>
   );
